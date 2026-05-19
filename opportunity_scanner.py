@@ -28,6 +28,8 @@ OPPORTUNITY_KEYWORDS = (
 )
 
 EMAIL_PATTERN = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
+MIN_PHONE_DIGITS = 7
+MAX_PLAYER_NAME_LENGTH = 40
 PHONE_PATTERN = re.compile(r"(?:\+\d{1,3}[\s-]?)?(?:\(?\d{2,4}\)?[\s-]?){2,4}\d{2,4}")
 DURATION_PATTERN = re.compile(r"\b\d+\s*(?:day|week|month|year)s?\b", re.IGNORECASE)
 
@@ -182,7 +184,7 @@ class OpportunityScanner:
     @staticmethod
     def _extract_contacts(text: str) -> dict[str, str]:
         emails = sorted(set(EMAIL_PATTERN.findall(text)))
-        phones = sorted(set(phone.strip() for phone in PHONE_PATTERN.findall(text) if len(re.sub(r"\D", "", phone)) >= 7))
+        phones = sorted(set(phone.strip() for phone in PHONE_PATTERN.findall(text) if len(re.sub(r"\D", "", phone)) >= MIN_PHONE_DIGITS))
         return {"emails": "; ".join(emails), "phones": "; ".join(phones)}
 
     @staticmethod
@@ -201,7 +203,7 @@ class OpportunityScanner:
 
     @staticmethod
     def _extract_key_players(text: str, fallback: str) -> str:
-        players = re.findall(r"(?:by|with|from)\s+([A-Z][A-Za-z&\-\s]{2,40})", text)
+        players = re.findall(rf"(?:by|with|from)\s+([A-Z][A-Za-z&\-\s]{{2,{MAX_PLAYER_NAME_LENGTH}}})", text)
         cleaned = sorted({player.strip(" .,;") for player in players if player.strip()})
         return "; ".join(cleaned) if cleaned else fallback
 
