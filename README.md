@@ -17,16 +17,16 @@ The CSV includes:
 
 ## Usage
 
-1. Edit `/home/runner/work/Railway-work-access-port/Railway-work-access-port/sources.json` with source websites or feeds:
+1. Edit `sources.json` with source websites or feeds:
    - `publishing_entity`
    - `website`
    - `url`
 2. Run the scanner:
 
 ```bash
-python /home/runner/work/Railway-work-access-port/Railway-work-access-port/opportunity_scanner.py \
-  --sources /home/runner/work/Railway-work-access-port/Railway-work-access-port/sources.json \
-  --output /home/runner/work/Railway-work-access-port/Railway-work-access-port/output/railway_opportunities.csv
+python opportunity_scanner.py \
+  --sources sources.json \
+  --output output/railway_opportunities.csv
 ```
 
 3. Open the generated CSV in Excel or any CSV-compatible tool.
@@ -34,5 +34,5 @@ python /home/runner/work/Railway-work-access-port/Railway-work-access-port/oppor
 ## Testing
 
 ```bash
-python -m unittest discover -s /home/runner/work/Railway-work-access-port/Railway-work-access-port/tests -v
+python -m unittest discover -s tests -v
 ```
