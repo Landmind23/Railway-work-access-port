@@ -184,7 +184,10 @@ class OpportunityScanner:
     @staticmethod
     def _extract_contacts(text: str) -> dict[str, str]:
         emails = sorted(set(EMAIL_PATTERN.findall(text)))
-        phones = sorted(set(phone.strip() for phone in PHONE_PATTERN.findall(text) if len(re.sub(r"\D", "", phone)) >= MIN_PHONE_DIGITS))
+        phone_matches = PHONE_PATTERN.findall(text)
+        phones = sorted(
+            set(phone.strip() for phone in phone_matches if len(re.sub(r"\D", "", phone)) >= MIN_PHONE_DIGITS)
+        )
         return {"emails": "; ".join(emails), "phones": "; ".join(phones)}
 
     @staticmethod
@@ -203,7 +206,7 @@ class OpportunityScanner:
 
     @staticmethod
     def _extract_key_players(text: str, fallback: str) -> str:
-        players = re.findall(rf"(?:by|with|from)\s+([A-Z][A-Za-z&\-\s]{{2,{MAX_PLAYER_NAME_LENGTH}}})", text)
+        players = re.findall(rf"(?:by|with|from)\s+([A-Z][A-Za-z&\-\s]{2,{MAX_PLAYER_NAME_LENGTH}})", text)
         cleaned = sorted({player.strip(" .,;") for player in players if player.strip()})
         return "; ".join(cleaned) if cleaned else fallback
 

@@ -31,7 +31,7 @@ class OpportunityScannerTests(unittest.TestCase):
         self.assertEqual(opportunity.link, "https://railafrica.org/tenders/1")
         self.assertIn("tenders@railafrica.org", opportunity.email)
         self.assertIn("+27 11 123 4567", opportunity.contact_numbers)
-        self.assertEqual(opportunity.duration.lower(), "12 months")
+        self.assertEqual(opportunity.duration, "12 months")
         self.assertEqual(opportunity.currently_open, "Yes")
 
     def test_extract_from_rss_filters_relevant_entries(self):
