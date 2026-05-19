@@ -6,8 +6,7 @@ import secrets
 import bcrypt
 from datetime import datetime, timedelta
 from functools import wraps
-from flask import request, jsonify, current_app
-from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
+from flask import request, jsonify
 from src.models import db, Company, APIToken
 
 

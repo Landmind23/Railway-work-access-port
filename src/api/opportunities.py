@@ -143,6 +143,8 @@ def assign_opportunity(opportunity_id):
         
         # Get company
         company = Company.query.get(request.company_id)
+        if not company:
+            return jsonify({'error': 'Company not found'}), 404
         
         # Assign to company
         opportunity.assigned_company_id = request.company_id
