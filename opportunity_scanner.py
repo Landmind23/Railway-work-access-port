@@ -30,8 +30,12 @@ OPPORTUNITY_KEYWORDS = (
 EMAIL_PATTERN = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
 MIN_PHONE_DIGITS = 7
 MAX_PLAYER_NAME_LENGTH = 40
+USER_AGENT = "RailwayOpportunityScanner/1.0"
 PHONE_PATTERN = re.compile(r"(?:\+\d{1,3}[\s-]?)?(?:\(?\d{2,4}\)?[\s-]?){2,4}\d{2,4}")
 DURATION_PATTERN = re.compile(r"\b\d+\s*(?:day|week|month|year)s?\b", re.IGNORECASE)
+KEY_PLAYERS_PATTERN = re.compile(
+    r"(?:by|with|from)\s+([A-Z][A-Za-z&\-\s]{2," + str(MAX_PLAYER_NAME_LENGTH) + r"})"
+)
 
 
 @dataclass
@@ -79,7 +83,7 @@ class OpportunityScanner:
         self.timeout = timeout
 
     def fetch_url(self, url: str) -> str:
-        req = urllib.request.Request(url, headers={"User-Agent": "RailwayOpportunityScanner/1.0"})
+        req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
         with urllib.request.urlopen(req, timeout=self.timeout) as response:
             return response.read().decode("utf-8", errors="replace")
 
@@ -206,7 +210,7 @@ class OpportunityScanner:
 
     @staticmethod
     def _extract_key_players(text: str, fallback: str) -> str:
-        players = re.findall(rf"(?:by|with|from)\s+([A-Z][A-Za-z&\-\s]{2,{MAX_PLAYER_NAME_LENGTH}})", text)
+        players = KEY_PLAYERS_PATTERN.findall(text)
         cleaned = sorted({player.strip(" .,;") for player in players if player.strip()})
         return "; ".join(cleaned) if cleaned else fallback
 
