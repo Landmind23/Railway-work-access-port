@@ -3,7 +3,7 @@ Authentication and authorization module
 """
 
 import secrets
-import hashlib
+import bcrypt
 from datetime import datetime, timedelta
 from functools import wraps
 from flask import request, jsonify, current_app
@@ -12,8 +12,18 @@ from src.models import db, Company, APIToken
 
 
 def hash_token(token: str) -> str:
-    """Hash a token for secure storage"""
-    return hashlib.sha256(token.encode()).hexdigest()
+    """
+    Hash a token using bcrypt for secure storage
+    
+    Args:
+        token: The token to hash
+        
+    Returns:
+        Hashed token string
+    """
+    # bcrypt requires bytes
+    salt = bcrypt.gensalt(rounds=12)
+    return bcrypt.hashpw(token.encode('utf-8'), salt).decode('utf-8')
 
 
 def generate_api_token() -> str:
@@ -66,25 +76,33 @@ def verify_api_token(token: str) -> dict:
     Returns:
         Dictionary with company info if valid, None otherwise
     """
-    token_hash = hash_token(token)
+    # Get all active, non-revoked tokens for this company
+    api_tokens = APIToken.query.filter_by(is_revoked=False).all()
     
-    api_token = APIToken.query.filter_by(
-        token_hash=token_hash,
-        is_revoked=False
-    ).first()
+    # Check if token matches any stored token
+    matched_token = None
+    for stored_token_obj in api_tokens:
+        try:
+            # bcrypt.checkpw returns True if password matches
+            if bcrypt.checkpw(token.encode('utf-8'), stored_token_obj.token_hash.encode('utf-8')):
+                matched_token = stored_token_obj
+                break
+        except (ValueError, TypeError):
+            # Invalid hash format, continue checking
+            continue
     
-    if not api_token:
+    if not matched_token:
         return None
     
     # Check expiration
-    if api_token.expires_at and api_token.expires_at < datetime.utcnow():
+    if matched_token.expires_at and matched_token.expires_at < datetime.utcnow():
         return None
     
     # Update last used timestamp
-    api_token.last_used_at = datetime.utcnow()
+    matched_token.last_used_at = datetime.utcnow()
     db.session.commit()
     
-    company = Company.query.get(api_token.company_id)
+    company = Company.query.get(matched_token.company_id)
     
     if not company or not company.is_active:
         return None
@@ -92,7 +110,7 @@ def verify_api_token(token: str) -> dict:
     return {
         'company_id': company.id,
         'company_name': company.name,
-        'token_id': api_token.id
+        'token_id': matched_token.id
     }
 
 
